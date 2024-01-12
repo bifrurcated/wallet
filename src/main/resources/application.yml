@@ -1,0 +1,10 @@
+server:
+  port: 8000
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:wallet}
+    username: ${POSTGRES_NAME:postgres}
+    password: ${POSTGRES_PASSWORD:123}
+  liquibase:
+    enabled: true

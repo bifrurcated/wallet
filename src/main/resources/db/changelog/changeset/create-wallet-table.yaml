@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-wallet-table
+      author: bifrurcated
+      changes:
+        - createTable:
+            tableName: wallet
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  defaultValueComputed: gen_random_uuid()
+              - column:
+                  name: amount
+                  type: bigserial(13,4)
+                  constraints:
+                    nullable: false
