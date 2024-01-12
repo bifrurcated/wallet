@@ -6,6 +6,7 @@ import com.bifurcated.wallet.errors.NotEnoughMoneyError;
 import com.bifurcated.wallet.errors.WalletNotFoundError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -20,12 +21,14 @@ public class WalletService {
         this.walletRepo = walletRepo;
     }
 
+    @Transactional
     public Wallet addAmount(UUID id, Float amount) {
         var wallet = walletRepo.findById(id).orElseThrow(WalletNotFoundError::new);
         wallet.setAmount(wallet.getAmount() + amount);
         return walletRepo.save(wallet);
     }
 
+    @Transactional
     public Wallet reduceAmount(UUID id, Float amount) {
         var wallet = walletRepo.findById(id).orElseThrow(WalletNotFoundError::new);
         var reduce = wallet.getAmount() - amount;
