@@ -1,4 +1,4 @@
-name: Java CI with Gradle
+name: Java CI with Maven
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
   id-token: write
   
 jobs:
-  build:
+  test:
     name: Build and Run Tests
     runs-on: ubuntu-latest
     
@@ -48,3 +48,20 @@ jobs:
       if: success() || failure() # always run even if the previous step fails
       with:
         report_paths: '**/build/test-results/test/TEST-*.xml'
+  build-docker-image:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      name: Check out code
+    
+    - name: Docker Build & Push Action
+      uses: mr-smithers-excellent/docker-build-push@v6
+      with:
+        image: bifurcated/wallet
+        tags: latest
+        registry: docker.io
+        dockerfile: Dockerfile
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
