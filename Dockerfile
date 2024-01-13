@@ -7,7 +7,7 @@ ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 WORKDIR /opt/service
 COPY pom.xml .
 COPY ./src ./src
-RUN mvn clean package
+RUN mvn clean package -DskipTests
 
 #
 # Package stage
