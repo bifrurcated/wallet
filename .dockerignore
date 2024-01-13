@@ -1,10 +1,10 @@
-HELP.md
 target/
+pg_data/
+
+HELP.md
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
-pg_data/
-
 ### STS ###
 .apt_generated
 .classpath
@@ -32,3 +32,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Logs ###
+logs/
+*.log
