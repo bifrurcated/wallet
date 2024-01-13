@@ -1,4 +1,4 @@
-![build and test maven](https://github.com/bifrurcated/wallet/actions/workflows/build_and_test_maven.yml/badge.svg)
+![build and test maven](https://github.com/bifrurcated/wallet/actions/workflows/CI.yml/badge.svg)
 # REST application
 Сервис для управления кошельком
 ## Usage
