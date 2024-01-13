@@ -89,6 +89,54 @@ class WalletControllerTest {
     }
 
     @Test
+    public void testWalletWithdraw() throws Exception {
+        record WalletRequest(UUID valletId, String operationType, Float amount){}
+        record WalletResponse(UUID id, Float amount) {}
+        UUID id = UUID.fromString("b3919077-79e6-4570-bfe0-980ef18f3731");
+        WalletRequest walletRequest = new WalletRequest(
+                id, "WITHDRAW", 1000F);
+        WalletResponse walletResponse = new WalletResponse(
+                id, 1000F
+        );
+        String requestBody = objectMapper.writeValueAsString(walletRequest);
+        String response = objectMapper.writeValueAsString(walletResponse);
+        this.mockMvc.perform(post(END_POINT_PATH+"/wallet")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(response));
+    }
+
+    @Test
+    public void testWalletWithdrawNotEnoughMoney() throws Exception {
+        record WalletRequest(UUID valletId, String operationType, Float amount){}
+        UUID id = UUID.fromString("bc10fad7-94f1-4047-be4e-311247eed5fb");
+        WalletRequest walletRequest = new WalletRequest(
+                id, "WITHDRAW", 1000F);
+
+        String requestBody = objectMapper.writeValueAsString(walletRequest);
+        this.mockMvc.perform(post(END_POINT_PATH+"/wallet")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andDo(print())
+                .andExpect(status().isPaymentRequired());
+    }
+
+    @Test
+    public void testWalletWithdrawUnsupportedOperationType() throws Exception {
+        record WalletRequest(UUID valletId, String operationType, Float amount){}
+        UUID id = UUID.fromString("bc10fad7-94f1-4047-be4e-311247eed5fb");
+        WalletRequest walletRequest = new WalletRequest(id, "WWWWWWW", 1000F);
+        String requestBody = objectMapper.writeValueAsString(walletRequest);
+        this.mockMvc.perform(post(END_POINT_PATH+"/wallet")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andDo(print())
+                .andExpect(status().isUnsupportedMediaType());
+    }
+
+    @Test
     public void testWalletGetAmount() throws Exception {
         record BalanceResponse(Float amount){}
         BalanceResponse balanceResponse = new BalanceResponse(2000F);
@@ -98,5 +146,13 @@ class WalletControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(response));
+    }
+
+    @Test
+    public void testWalletGetAmountNotFound() throws Exception {
+        String id = "b3919077-79e6-4570-bfe0-980ef18f3700";
+        this.mockMvc.perform(get(END_POINT_PATH+"/wallets/"+id))
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 }
