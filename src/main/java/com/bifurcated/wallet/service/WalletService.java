@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.UUID;
 
 
@@ -39,7 +38,7 @@ public class WalletService {
         return walletRepo.save(wallet);
     }
 
-    public void amount() {
-
+    public Float amount(UUID id) {
+        return walletRepo.findById(id).orElseThrow(WalletNotFoundError::new).getAmount();
     }
 }

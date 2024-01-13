@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/v1/wallet")
+@RequestMapping("/api/v1")
 public class WalletController {
 
     private final WalletService walletService;
@@ -39,5 +39,12 @@ public class WalletController {
                 .handle(request.walletId(), request.amount());
 
         return new WalletResponse(wallet.getId(), wallet.getAmount());
+    }
+
+    public record BalanceResponse(Float amount){}
+    @GetMapping("/wallets/{WALLET_UUID}")
+    public BalanceResponse balance(@PathVariable(value = "WALLET_UUID") UUID id) {
+        Float amount = walletService.amount(id);
+        return new BalanceResponse(amount);
     }
 }
