@@ -2,14 +2,12 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: ["another-feature"]
+    branches: ["main"]
   pull_request:
-    branches: ["another-feature"]
+    branches: ["main"]
     
 permissions:
-  contents: read
   checks: write
-  id-token: write
   
 jobs:
   test:
@@ -27,11 +25,11 @@ jobs:
     - name: Run tests
       run: mvn test
 
-    - name: Generate report
-      uses: mikepenz/action-junit-report@v4
+    - name: JUnit Report Action
+      uses: mikepenz/action-junit-report@v4.0.4
+      if: success() || failure()
       with:
-        report-path: target/surefire-reports
-        generate-html-report: true
+        report_paths: '**/build/test-results/test/TEST-*.xml'
 
   build-and-push-docker-image:
     needs: test
