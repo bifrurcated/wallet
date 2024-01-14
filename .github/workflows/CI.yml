@@ -51,10 +51,15 @@ jobs:
 
     - name: Build image
       run: mvn spring-boot:build-image -Ddockerfile=Dockerfile.layers -DskipTests
+      env:
+        IMAGE_NAME: ${{ steps.get-image-name.outputs.IMAGE_NAME }}
 
     - name: Get image name
       id: get-image-name
       run: echo "${{ steps.build.outputs.IMAGE_NAME }}"
 
+    - name: print image name
+      run: echo "IMAGE_NAME"
+
     - name: Push image
-      run: docker push ${{ steps.get-image-name.outputs.IMAGE_NAME }}
+      run: docker push <span class="math-inline">IMAGE\_NAME
