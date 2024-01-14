@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class WalletControllerTest {
-
+    private static final Logger logger = LoggerFactory.getLogger(WalletControllerTest.class);
     private static final String END_POINT_PATH = "/api/v1";
     @Autowired
     private MockMvc mockMvc;
@@ -34,6 +36,7 @@ class WalletControllerTest {
     private ObjectMapper objectMapper;
     @Autowired
     private WalletRepo repository;
+
 
     @BeforeEach
     public void setup() {
@@ -74,6 +77,7 @@ class WalletControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(response));
+        logger.info("Test passed");
     }
     @Test
     public void testWalletDepositNotFound() throws Exception {
@@ -86,6 +90,7 @@ class WalletControllerTest {
                         .content(requestBody))
                 .andDo(print())
                 .andExpect(status().isNotFound());
+        logger.info("Test passed");
     }
 
     @Test
@@ -106,6 +111,7 @@ class WalletControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(response));
+        logger.info("Test passed");
     }
 
     @Test
@@ -121,6 +127,7 @@ class WalletControllerTest {
                         .content(requestBody))
                 .andDo(print())
                 .andExpect(status().isPaymentRequired());
+        logger.info("Test passed");
     }
 
     @Test
@@ -134,6 +141,7 @@ class WalletControllerTest {
                         .content(requestBody))
                 .andDo(print())
                 .andExpect(status().isUnsupportedMediaType());
+        logger.info("Test passed");
     }
 
     @Test
@@ -146,6 +154,7 @@ class WalletControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().json(response));
+        logger.info("Test passed");
     }
 
     @Test
@@ -154,5 +163,6 @@ class WalletControllerTest {
         this.mockMvc.perform(get(END_POINT_PATH+"/wallets/"+id))
                 .andDo(print())
                 .andExpect(status().isNotFound());
+        logger.info("Test passed");
     }
 }

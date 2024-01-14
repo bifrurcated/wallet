@@ -1,6 +1,8 @@
 server:
   port: 8000
-
+logging:
+  level:
+    root: INFO
 spring:
   datasource:
     url: jdbc:tc:postgresql:14.1:///test
