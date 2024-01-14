@@ -52,11 +52,14 @@ jobs:
     - name: Build image
       run: mvn spring-boot:build-image -Ddockerfile=Dockerfile.layers -DskipTests
 
-    - name: print JAR_FILE
-      run: echo $projectVersion
+    - name: Set image name
+      run: |
+         artifactId=$(echo ${GITHUB_REF#refs/heads/})
+         image_name="${artifactId}:${version}"
+         echo "IMAGE_NAME=${image_name}" >> $GITHUB_ENV
 
-    - name: print JAR_FILE
-      run: echo $projectArtefactId
+    - name: print IMAGE_NAME
+      run: echo "$IMAGE_NAME"
 
     - name: Push image
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.projectArtefactId }}:${{ env.projectVersion }}
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
