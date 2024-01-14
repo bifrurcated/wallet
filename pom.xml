@@ -70,8 +70,8 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<systemPropertyVariables>
-						<projectArtefactId>${project.artifactId}</projectArtefactId>
-						<projectVersion>${project.version}</projectVersion>
+						<project.ArtefactId>${project.artifactId}</project.ArtefactId>
+						<project.Version>${project.version}</project.Version>
 					</systemPropertyVariables>
 					<image>
 						<name>${docker.image.prefix}/${project.artifactId}:${project.version}</name>
