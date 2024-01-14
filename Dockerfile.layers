@@ -1,0 +1,19 @@
+#stage 1
+#Start with a base image containing Java runtime
+FROM openjdk:17-slim as build
+WORKDIR application
+ARG JAR_FILE=target/${project.build.finalName}.jar
+COPY ${JAR_FILE} application.jar
+RUN java -Djarmode=layertools -jar application.jar extract
+
+#stage 2
+#Same Java runtime
+FROM openjdk:17-slim
+WORKDIR application
+COPY --from=build application/dependencies/ ./
+COPY --from=build application/spring-boot-loader/ ./
+COPY --from=build application/snapshot-dependencies/ ./
+COPY --from=build application/application/ ./
+
+#execute the application
+ENTRYPOINT ["sh", "-c", "java ${JAVA_OPTS} org.springframework.boot.loader.JarLauncher ${SPRING_OPTS}"]
