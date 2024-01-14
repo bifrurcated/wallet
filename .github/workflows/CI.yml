@@ -52,13 +52,12 @@ jobs:
     - name: Build image
       run: mvn spring-boot:build-image -Ddockerfile=Dockerfile.layers -DskipTests
 
-    - name: Get project version
+    - name: Get project artifactId and version
       run: |
+        artifactId=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.artifactId}' exec:exec)
         version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' exec:exec)
-        echo "VERSION=${version}" >> $GITHUB_ENV
-
-    - name: Set image name
-      run: echo "IMAGE_NAME=wallet:${VERSION}" >> $GITHUB_ENV
+        image_name="${artifactId}:${version}"
+        echo "IMAGE_NAME=${image_name}" >> $GITHUB_ENV
 
     - name: print IMAGE_NAME
       run: echo ${IMAGE_NAME}
