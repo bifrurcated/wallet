@@ -53,13 +53,10 @@ jobs:
       run: mvn spring-boot:build-image -Ddockerfile=Dockerfile.layers -DskipTests
 
     - name: Set image name
-      run: |
-         artifactId=$(echo ${GITHUB_REF#refs/heads/})
-         image_name="${artifactId}:${version}"
-         echo "IMAGE_NAME=${image_name}" >> $GITHUB_ENV
+      run: echo "IMAGE_NAME=wallet:$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
 
     - name: print IMAGE_NAME
-      run: echo "$IMAGE_NAME"
+      run: echo $IMAGE_NAME
 
     - name: Push image
       run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
