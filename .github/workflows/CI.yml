@@ -23,7 +23,7 @@ jobs:
         java-version: 17
 
     - name: Run tests
-      run: mvn test
+      run: mvn test --batch-mode --fail-at-end
 
     - name: JUnit Report Action
       uses: mikepenz/action-junit-report@v4.0.4
