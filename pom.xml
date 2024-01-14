@@ -69,6 +69,10 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<systemPropertyVariables>
+						<projectArtefactId>${project.artifactId}</projectArtefactId>
+						<projectVersion>${project.version}</projectVersion>
+					</systemPropertyVariables>
 					<image>
 						<name>${docker.image.prefix}/${project.artifactId}:${project.version}</name>
 					</image>

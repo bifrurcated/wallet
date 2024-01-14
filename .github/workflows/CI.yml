@@ -53,10 +53,10 @@ jobs:
       run: mvn spring-boot:build-image -Ddockerfile=Dockerfile.layers -DskipTests
 
     - name: print JAR_FILE
-      run: echo $JAR_FILE
+      run: echo $projectVersion
 
     - name: print JAR_FILE
-      run: echo $project.artifactId:$project.version
+      run: echo $projectArtefactId
 
     - name: Push image
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/${project.artifactId}:${project.version}
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ projectArtefactId }}:${{ projectVersion }}
