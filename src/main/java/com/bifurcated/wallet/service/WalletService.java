@@ -28,12 +28,11 @@ public class WalletService {
     @Transactional(
             isolation = Isolation.SERIALIZABLE,
             propagation = Propagation.REQUIRES_NEW)
-    @Retryable(retryFor = SQLException.class, maxAttempts = 17, backoff = @Backoff(delay = 1000))
+    @Retryable(retryFor = SQLException.class, maxAttempts = 17, backoff = @Backoff(delay = 500))
     public Wallet addAmount(UUID id, Float amount) {
         var wallet = walletRepo.findById(id).orElseThrow(WalletNotFoundError::new);
         wallet.setAmount(wallet.getAmount() + amount);
-        Wallet save = walletRepo.save(wallet);
-        return save;
+        return walletRepo.save(wallet);
     }
 
     @Transactional
