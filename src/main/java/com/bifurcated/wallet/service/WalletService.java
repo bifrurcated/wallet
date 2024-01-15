@@ -5,9 +5,14 @@ import com.bifurcated.wallet.data.WalletRepo;
 import com.bifurcated.wallet.errors.NotEnoughMoneyError;
 import com.bifurcated.wallet.errors.WalletNotFoundError;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.SQLException;
 import java.util.UUID;
 
 
@@ -20,11 +25,15 @@ public class WalletService {
         this.walletRepo = walletRepo;
     }
 
-    @Transactional
+    @Transactional(
+            isolation = Isolation.SERIALIZABLE,
+            propagation = Propagation.REQUIRES_NEW)
+    @Retryable(retryFor = SQLException.class, maxAttempts = 17, backoff = @Backoff(delay = 500))
     public Wallet addAmount(UUID id, Float amount) {
         var wallet = walletRepo.findById(id).orElseThrow(WalletNotFoundError::new);
         wallet.setAmount(wallet.getAmount() + amount);
-        return walletRepo.save(wallet);
+        Wallet save = walletRepo.save(wallet);
+        return save;
     }
 
     @Transactional

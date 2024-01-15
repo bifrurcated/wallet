@@ -6,14 +6,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -26,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class WalletControllerTest {
+    private static Logger logger = LoggerFactory.getLogger(WalletControllerTest.class);
     private static final String END_POINT_PATH = "/api/v1";
     @Autowired
     private MockMvc mockMvc;
@@ -33,7 +43,6 @@ class WalletControllerTest {
     private ObjectMapper objectMapper;
     @Autowired
     private WalletRepo repository;
-
 
     @BeforeEach
     public void setup() {
@@ -154,5 +163,40 @@ class WalletControllerTest {
         this.mockMvc.perform(get(END_POINT_PATH+"/wallets/"+id))
                 .andDo(print())
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testWalletDepositDDOSAttack() throws Exception {
+        record WalletRequest(UUID valletId, String operationType, Float amount){}
+        record BalanceResponse(Float amount){}
+        UUID id = UUID.fromString("b3919077-79e6-4570-bfe0-980ef18f3731");
+        WalletRequest walletRequest = new WalletRequest(
+                id, "DEPOSIT", 1000F);
+
+        String requestBody = objectMapper.writeValueAsString(walletRequest);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(10000);
+        List<Future<ResultActions>> futures = new ArrayList<>();
+        for (int i = 0; i < 300; i++) {
+            Callable<ResultActions> callable = () -> {
+                ResultActions perform = this.mockMvc.perform(post(END_POINT_PATH + "/wallet")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody));
+                return perform.andExpect(status().isOk());
+            };
+
+            Future<ResultActions> future = executorService.submit(callable);
+            futures.add(future);
+        }
+        for (Future<ResultActions> future : futures) {
+            future.get();
+        }
+
+        BalanceResponse balanceResponse = new BalanceResponse(302000F);
+        String response = objectMapper.writeValueAsString(balanceResponse);
+        this.mockMvc.perform(get(END_POINT_PATH+"/wallets/"+id))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(response));
     }
 }
