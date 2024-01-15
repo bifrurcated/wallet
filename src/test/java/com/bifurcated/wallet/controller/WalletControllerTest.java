@@ -175,7 +175,7 @@ class WalletControllerTest {
 
         String requestBody = objectMapper.writeValueAsString(walletRequest);
 
-        ExecutorService executorService = Executors.newFixedThreadPool(10000);
+        ExecutorService executorService = Executors.newFixedThreadPool(300);
         List<Future<ResultActions>> futures = new ArrayList<>();
         for (int i = 0; i < 300; i++) {
             Callable<ResultActions> callable = () -> {
