@@ -5,14 +5,8 @@ import com.bifurcated.wallet.data.WalletRepo;
 import com.bifurcated.wallet.errors.NotEnoughMoneyError;
 import com.bifurcated.wallet.errors.WalletNotFoundError;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.SQLException;
 import java.util.UUID;
 
 
@@ -25,25 +19,17 @@ public class WalletService {
         this.walletRepo = walletRepo;
     }
 
-    @Transactional(
-            isolation = Isolation.SERIALIZABLE,
-            propagation = Propagation.REQUIRES_NEW)
-    @Retryable(retryFor = SQLException.class, maxAttempts = 17, backoff = @Backoff(delay = 500))
     public Wallet addAmount(UUID id, Float amount) {
-        var wallet = walletRepo.findById(id).orElseThrow(WalletNotFoundError::new);
-        wallet.setAmount(wallet.getAmount() + amount);
-        return walletRepo.save(wallet);
+        return walletRepo.updateAmount(id, amount).orElseThrow(WalletNotFoundError::new);
     }
 
-    @Transactional
     public Wallet reduceAmount(UUID id, Float amount) {
         var wallet = walletRepo.findById(id).orElseThrow(WalletNotFoundError::new);
         var reduce = wallet.getAmount() - amount;
         if (reduce < 0) {
             throw new NotEnoughMoneyError(wallet.getAmount(), amount);
         }
-        wallet.setAmount(reduce);
-        return walletRepo.save(wallet);
+        return walletRepo.updateAmountReduce(id, amount);
     }
 
     public Float amount(UUID id) {
