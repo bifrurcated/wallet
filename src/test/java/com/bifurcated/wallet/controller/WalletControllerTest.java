@@ -240,4 +240,50 @@ class WalletControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().json(response));
     }
+
+    @Test
+    public void testWalletDepositAndWithdrawConcurrency() throws Exception {
+        record WalletRequest(UUID valletId, String operationType, Float amount){}
+        record BalanceResponse(Float amount){}
+        UUID id = UUID.fromString("9ebef4de-68e3-43ad-a812-42193919ff02");
+        WalletRequest walletDepositRequest = new WalletRequest(id, "DEPOSIT", 500F);
+        WalletRequest walletWithdrawRequest = new WalletRequest(id, "WITHDRAW", 1000F);
+
+        String requestDepositBody = objectMapper.writeValueAsString(walletDepositRequest);
+        String requestWithdrawBody = objectMapper.writeValueAsString(walletWithdrawRequest);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(300);
+        List<Future<ResultActions>> futures = new ArrayList<>();
+        for (int i = 0; i < 300; i++) {
+            Callable<ResultActions> callable;
+            if (i%2 == 0) {
+                callable = () -> {
+                    ResultActions perform = this.mockMvc.perform(post(END_POINT_PATH + "/wallet")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestDepositBody));
+                    return perform.andExpect(status().isOk());
+                };
+            } else {
+                callable = () -> {
+                    ResultActions perform = this.mockMvc.perform(post(END_POINT_PATH + "/wallet")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(requestWithdrawBody));
+                    return perform.andExpect(status().isOk());
+                };
+            }
+
+            Future<ResultActions> future = executorService.submit(callable);
+            futures.add(future);
+        }
+        for (Future<ResultActions> future : futures) {
+            future.get();
+        }
+
+        BalanceResponse balanceResponse = new BalanceResponse(227000F);
+        String response = objectMapper.writeValueAsString(balanceResponse);
+        this.mockMvc.perform(get(END_POINT_PATH+"/wallets/"+id))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(response));
+    }
 }
