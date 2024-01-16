@@ -59,6 +59,12 @@ class WalletControllerTest {
         if (repository.findById(wallet2.getId()).isEmpty()) {
             repository.save(wallet2.setAsNew());
         }
+        Wallet wallet3 = new Wallet();
+        wallet3.setId(UUID.fromString("9ebef4de-68e3-43ad-a812-42193919ff02"));
+        wallet3.setAmount(302000F);
+        if (repository.findById(wallet3.getId()).isEmpty()) {
+            repository.save(wallet3.setAsNew());
+        }
     }
     @AfterEach
     public void clear() {
@@ -193,6 +199,41 @@ class WalletControllerTest {
         }
 
         BalanceResponse balanceResponse = new BalanceResponse(302000F);
+        String response = objectMapper.writeValueAsString(balanceResponse);
+        this.mockMvc.perform(get(END_POINT_PATH+"/wallets/"+id))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(response));
+    }
+
+    @Test
+    public void testWalletWithdrawDDOSAttack() throws Exception {
+        record WalletRequest(UUID valletId, String operationType, Float amount){}
+        record BalanceResponse(Float amount){}
+        UUID id = UUID.fromString("9ebef4de-68e3-43ad-a812-42193919ff02");
+        WalletRequest walletRequest = new WalletRequest(
+                id, "WITHDRAW", 1000F);
+
+        String requestBody = objectMapper.writeValueAsString(walletRequest);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(300);
+        List<Future<ResultActions>> futures = new ArrayList<>();
+        for (int i = 0; i < 300; i++) {
+            Callable<ResultActions> callable = () -> {
+                ResultActions perform = this.mockMvc.perform(post(END_POINT_PATH + "/wallet")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody));
+                return perform.andExpect(status().isOk());
+            };
+
+            Future<ResultActions> future = executorService.submit(callable);
+            futures.add(future);
+        }
+        for (Future<ResultActions> future : futures) {
+            future.get();
+        }
+
+        BalanceResponse balanceResponse = new BalanceResponse(2000F);
         String response = objectMapper.writeValueAsString(balanceResponse);
         this.mockMvc.perform(get(END_POINT_PATH+"/wallets/"+id))
                 .andDo(print())
