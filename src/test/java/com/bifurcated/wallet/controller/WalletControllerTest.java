@@ -50,21 +50,15 @@ class WalletControllerTest {
         Wallet wallet1 = new Wallet();
         wallet1.setId(UUID.fromString("b3919077-79e6-4570-bfe0-980ef18f3731"));
         wallet1.setAmount(2000F);
-        if (repository.findById(wallet1.getId()).isEmpty()) {
-            repository.save(wallet1.setAsNew());
-        }
+        repository.save(wallet1.setAsNew());
         Wallet wallet2 = new Wallet();
         wallet2.setId(UUID.fromString("bc10fad7-94f1-4047-be4e-311247eed5fb"));
         wallet2.setAmount(500F);
-        if (repository.findById(wallet2.getId()).isEmpty()) {
-            repository.save(wallet2.setAsNew());
-        }
+        repository.save(wallet2.setAsNew());
         Wallet wallet3 = new Wallet();
         wallet3.setId(UUID.fromString("9ebef4de-68e3-43ad-a812-42193919ff02"));
         wallet3.setAmount(302000F);
-        if (repository.findById(wallet3.getId()).isEmpty()) {
-            repository.save(wallet3.setAsNew());
-        }
+        repository.save(wallet3.setAsNew());
     }
     @AfterEach
     public void clear() {
