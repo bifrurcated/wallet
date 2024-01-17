@@ -9,6 +9,8 @@ spring:
     username: test
     password: test
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+    hikari:
+      connectionTimeout: 300000
   liquibase:
     enabled: true
     contexts: test

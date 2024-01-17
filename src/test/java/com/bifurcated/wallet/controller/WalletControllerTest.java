@@ -1,7 +1,7 @@
 package com.bifurcated.wallet.controller;
 
 import com.bifurcated.wallet.data.Wallet;
-import com.bifurcated.wallet.data.WalletRepo;
+import com.bifurcated.wallet.repository.WalletRepo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class WalletControllerTest {
-    private static Logger logger = LoggerFactory.getLogger(WalletControllerTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(WalletControllerTest.class);
     private static final String END_POINT_PATH = "/api/v1";
     @Autowired
     private MockMvc mockMvc;
