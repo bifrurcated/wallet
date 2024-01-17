@@ -7,61 +7,58 @@ on:
     branches: ["main"]
     
 permissions:
-  contents: read
   checks: write
-  id-token: write
   
 jobs:
   test:
     name: Build and Run Tests
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:15.1-alpine
-        env:
-          POSTGRES_DB: wallet
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: 123
-        ports:
-          - 5432:5432
-        options:
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    
+
     steps:
     - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      name: Check out code
+    - name: Setup Maven Action
+      uses: s4u/setup-maven-action@v1.11.0
       with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: maven
-      env:
-        POSTGRES_HOST: postgres
-    - name: Build with Maven
-      run: mvn --batch-mode --update-snapshots verify
-    - name: Publish Test Report
-      uses: mikepenz/action-junit-report@v4
-      if: success() || failure() # always run even if the previous step fails
+        java-version: 17
+
+    - name: Run tests
+      run: mvn test --batch-mode --fail-at-end
+
+    - name: JUnit Report Action
+      uses: mikepenz/action-junit-report@v4.0.4
+      if: success() || failure()
       with:
         report_paths: '**/build/test-results/test/TEST-*.xml'
-  build-docker-image:
+
+  build-and-push-docker-image:
     needs: test
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-      name: Check out code
-    
-    - name: Docker Build & Push Action
-      uses: mr-smithers-excellent/docker-build-push@v6
+    - name: Setup Maven Action
+      uses: s4u/setup-maven-action@v1.11.0
       with:
-        image: bifurcated/wallet
-        tags: latest
-        registry: docker.io
-        dockerfile: Dockerfile
+        java-version: 17
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build image
+      run: mvn spring-boot:build-image -Ddockerfile=Dockerfile.layers -DskipTests
+
+    - name: Get project artifactId and version
+      run: |
+        artifactId=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.artifactId}' exec:exec)
+        version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' exec:exec)
+        image_name="${artifactId}:${version}"
+        echo "IMAGE_NAME=${image_name}" >> $GITHUB_ENV
+
+    - name: print IMAGE_NAME
+      run: echo ${IMAGE_NAME}
+
+    - name: Push image
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}
