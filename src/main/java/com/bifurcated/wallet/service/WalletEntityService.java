@@ -1,6 +1,7 @@
 package com.bifurcated.wallet.service;
 
 import com.bifurcated.wallet.data.WalletEntity;
+import com.bifurcated.wallet.errors.NotEnoughMoneyError;
 import com.bifurcated.wallet.errors.WalletNotFoundError;
 import com.bifurcated.wallet.repository.WalletEntityRepository;
 import jakarta.persistence.EntityManager;
@@ -35,6 +36,18 @@ public class WalletEntityService {
     public WalletEntity addAmountUsingUpdate(UUID id, Float amount) {
         repository.updateAddAmountById(id, amount);
         return repository.findById(id).orElseThrow(WalletNotFoundError::new);
+    }
+
+    @Transactional
+    public WalletEntity reduceAmount(UUID id, Float amount) {
+        var entity = entityManager.find(WalletEntity.class, id, LockModeType.PESSIMISTIC_WRITE);
+        var wallet = Optional.ofNullable(entity).orElseThrow(WalletNotFoundError::new);
+        var reduce = wallet.getAmount() - amount;
+        if (reduce < 0) {
+            throw new NotEnoughMoneyError(wallet.getAmount(), amount);
+        }
+        wallet.setAmount(reduce);
+        return repository.save(wallet);
     }
 
     public Float amount(UUID id) {

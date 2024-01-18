@@ -1,9 +1,7 @@
 package com.bifurcated.wallet.controller;
 
-import com.bifurcated.wallet.data.Wallet;
 import com.bifurcated.wallet.data.WalletEntity;
 import com.bifurcated.wallet.repository.WalletEntityRepository;
-import com.bifurcated.wallet.repository.WalletRepo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +17,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -102,7 +99,7 @@ class WalletEntityControllerTest {
         List<Future<ResultActions>> futures = new ArrayList<>();
         for (int i = 0; i < 300; i++) {
             Callable<ResultActions> callable = () -> {
-                ResultActions perform = this.mockMvc.perform(post(END_POINT_PATH + "/wallet")
+                ResultActions perform = this.mockMvc.perform(post(END_POINT_PATH + "/wallet/add")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody));
                 return perform.andExpect(status().isOk());
@@ -116,6 +113,41 @@ class WalletEntityControllerTest {
         }
 
         BalanceResponse balanceResponse = new BalanceResponse(302000F);
+        String response = objectMapper.writeValueAsString(balanceResponse);
+        this.mockMvc.perform(get(END_POINT_PATH+"/wallets/"+id))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(response));
+    }
+
+    @Test
+    public void testWalletWithdrawDDOSAttack() throws Exception {
+        record WalletRequest(UUID valletId, String operationType, Float amount){}
+        record BalanceResponse(Float amount){}
+        UUID id = UUID.fromString("9ebef4de-68e3-43ad-a812-42193919ff02");
+        WalletRequest walletRequest = new WalletRequest(
+                id, "WITHDRAW", 1000F);
+
+        String requestBody = objectMapper.writeValueAsString(walletRequest);
+
+        ExecutorService executorService = Executors.newFixedThreadPool(300);
+        List<Future<ResultActions>> futures = new ArrayList<>();
+        for (int i = 0; i < 300; i++) {
+            Callable<ResultActions> callable = () -> {
+                ResultActions perform = this.mockMvc.perform(post(END_POINT_PATH + "/wallet/reduce")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody));
+                return perform.andExpect(status().isOk());
+            };
+
+            Future<ResultActions> future = executorService.submit(callable);
+            futures.add(future);
+        }
+        for (Future<ResultActions> future : futures) {
+            future.get();
+        }
+
+        BalanceResponse balanceResponse = new BalanceResponse(2000F);
         String response = objectMapper.writeValueAsString(balanceResponse);
         this.mockMvc.perform(get(END_POINT_PATH+"/wallets/"+id))
                 .andDo(print())

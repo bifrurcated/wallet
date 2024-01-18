@@ -1,15 +1,12 @@
 package com.bifurcated.wallet.controller;
 
-import com.bifurcated.wallet.errors.UnsupportedOperationTypeError;
 import com.bifurcated.wallet.operation.OperationType;
 import com.bifurcated.wallet.service.WalletEntityService;
-import com.bifurcated.wallet.service.WalletService;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -29,13 +26,17 @@ public class WalletEntityController {
     public record WalletResponse(UUID id, Float amount){}
     public record WalletRequest(
             @JsonProperty("valletId") UUID walletId,
-            String operationType,
             Float amount
     ){}
-    @PostMapping("/wallet")
-    public WalletResponse wallet(@RequestBody WalletRequest request) {
-        var operationType = request.operationType().toLowerCase();
+    @PostMapping("/wallet/add")
+    public WalletResponse walletAdd(@RequestBody WalletRequest request) {
         var wallet = walletService.addAmount(request.walletId(), request.amount());
+        return new WalletResponse(wallet.getId(), wallet.getAmount());
+    }
+
+    @PostMapping("/wallet/reduce")
+    public WalletResponse walletReduce(@RequestBody WalletRequest request) {
+        var wallet = walletService.reduceAmount(request.walletId(), request.amount());
         return new WalletResponse(wallet.getId(), wallet.getAmount());
     }
 
