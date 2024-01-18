@@ -5,6 +5,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 public class UnsupportedOperationTypeError extends ResponseStatusException {
     public UnsupportedOperationTypeError() {
-        super(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "operation type is not supported");
+        super(HttpStatus.BAD_REQUEST, "operation type is not supported");
     }
 }
