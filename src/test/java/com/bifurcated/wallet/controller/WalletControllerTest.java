@@ -142,7 +142,7 @@ class WalletControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andDo(print())
-                .andExpect(status().isUnsupportedMediaType());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
