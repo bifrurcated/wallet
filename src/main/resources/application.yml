@@ -8,3 +8,6 @@ spring:
     password: ${POSTGRES_PASSWORD:123}
   liquibase:
     enabled: true
+
+  jpa:
+    open-in-view: false

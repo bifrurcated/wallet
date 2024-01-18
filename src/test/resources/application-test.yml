@@ -14,3 +14,6 @@ spring:
   liquibase:
     enabled: true
     contexts: test
+
+  jpa:
+    open-in-view: false
