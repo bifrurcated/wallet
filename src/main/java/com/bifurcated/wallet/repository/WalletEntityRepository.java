@@ -14,4 +14,9 @@ public interface WalletEntityRepository extends JpaRepository<WalletEntity, UUID
     @Modifying
     @Query("update wallet w set w.amount = ?1 where w.id = ?2")
     int updateAmountById(Float amount, UUID id);
+
+    @Transactional
+    @Modifying
+    @Query("update wallet w set w.amount = w.amount + ?2 where w.id = ?1")
+    void updateAddAmountById(UUID id, Float amount);
 }

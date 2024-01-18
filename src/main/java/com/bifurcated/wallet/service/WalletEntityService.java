@@ -6,9 +6,7 @@ import com.bifurcated.wallet.repository.WalletEntityRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
-import org.hibernate.annotations.OptimisticLock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -32,6 +30,11 @@ public class WalletEntityService {
         var wallet = Optional.ofNullable(entity).orElseThrow(WalletNotFoundError::new);
         wallet.setAmount(wallet.getAmount() + amount);
         return repository.save(wallet);
+    }
+
+    public WalletEntity addAmountUsingUpdate(UUID id, Float amount) {
+        repository.updateAddAmountById(id, amount);
+        return repository.findById(id).orElseThrow(WalletNotFoundError::new);
     }
 
     public Float amount(UUID id) {
