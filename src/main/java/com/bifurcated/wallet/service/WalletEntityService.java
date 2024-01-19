@@ -27,10 +27,17 @@ public class WalletEntityService {
 
     @Transactional
     public WalletEntity addAmount(UUID id, Float amount) {
+        var wallet = repository.findByIdForUpdate(id).orElseThrow(WalletNotFoundError::new);
+        wallet.setAmount(wallet.getAmount() + amount);
+        return repository.save(wallet);
+    }
+
+    @Transactional
+    public WalletEntity addAmountUsingEntityManager(UUID id, Float amount) {
         var entity = entityManager.find(WalletEntity.class, id, LockModeType.PESSIMISTIC_WRITE);
         var wallet = Optional.ofNullable(entity).orElseThrow(WalletNotFoundError::new);
         wallet.setAmount(wallet.getAmount() + amount);
-        return repository.save(wallet);
+        return entityManager.merge(wallet);
     }
 
     public WalletEntity addAmountUsingUpdate(UUID id, Float amount) {

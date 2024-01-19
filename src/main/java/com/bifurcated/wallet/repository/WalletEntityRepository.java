@@ -1,7 +1,6 @@
 package com.bifurcated.wallet.repository;
 
 import com.bifurcated.wallet.data.WalletEntity;
-import jakarta.annotation.Nonnull;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,4 +18,9 @@ public interface WalletEntityRepository extends JpaRepository<WalletEntity, UUID
     @Modifying
     @Query("update wallet w set w.amount = w.amount + ?2 where w.id = ?1")
     void updateAddAmountById(UUID id, Float amount);
+
+    @Query("SELECT w FROM wallet w WHERE w.id = :id")
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<WalletEntity> findByIdForUpdate(UUID id);
+
 }
